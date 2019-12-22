@@ -57,6 +57,20 @@ class ClientSocket : private Socket
 			}
 			return *this;
 		}
-		void close();
-		int getFD();
+
+		void close()
+		{
+			if(!Socket::close())
+			{
+				throw SocketException(strerror(errno));
+			}
+		}
+
+		int getFD()
+		{
+			if(!Socket::close())
+			{
+				throw SocketException(strerror(errno));
+			}			
+		}
 };
