@@ -27,8 +27,11 @@ class ClientSocket : private Socket
 			{
 				throw SocketException(strerror(errno));
 			}
-			int ip = lookup(ip_address);
-			if(!Socket::connect(ip,port)){
+
+			int ip = lookup(host);
+
+			if(!Socket::connect(ip,port))
+			{
 				throw SocketException(strerror(errno));
 			}
 		}
@@ -36,9 +39,24 @@ class ClientSocket : private Socket
 		{
 			Socket::close();
 		}
-		
-		ClientSocket& operator << (std::string&);
-		ClientSocket& operator >> (std::string&);
+
+		ClientSocket& operator << (string&)
+		{
+			if(Socket::send(s)==-1)
+			{
+				throw SocketException(strerror(errno));
+			}
+			return *this;
+		}
+
+		ClientSocket& operator >> (std::string&)
+		{
+			if(Socket::recv(s)==-1)
+			{
+				throw SocketException(strerror(errno));
+			}
+			return *this;
+		}
 		void close();
 		int getFD();
 };
