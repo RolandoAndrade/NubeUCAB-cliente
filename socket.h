@@ -120,7 +120,7 @@ class Socket
 
 			maddress.sin_family = AF_INET;
 			maddress.sin_port = htons(port);
-			maddress.sin_addr.s_addr = stoi(host);
+			maddress.sin_addr.s_addr = host;
 
 			return ::connect(sockfd, (sockaddr *)&maddress, sizeof(maddress)) != -1;
 		}
