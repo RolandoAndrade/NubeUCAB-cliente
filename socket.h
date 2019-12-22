@@ -111,7 +111,7 @@ class Socket
 		}
 
 		/*Cliente: Conecta al servicio del host en el puerto*/
-		int connect(string host,int port)
+		int connect(int host,int port)
 		{
 			if(!is_valid())
 			{

@@ -40,7 +40,7 @@ class ClientSocket : private Socket
 			Socket::close();
 		}
 
-		ClientSocket& operator << (string&)
+		ClientSocket& operator << (string &s)
 		{
 			if(Socket::send(s)==-1)
 			{
@@ -49,7 +49,7 @@ class ClientSocket : private Socket
 			return *this;
 		}
 
-		ClientSocket& operator >> (std::string&)
+		ClientSocket& operator >> (string &s)
 		{
 			if(Socket::recv(s)==-1)
 			{
