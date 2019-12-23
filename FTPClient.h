@@ -21,7 +21,10 @@ class FTPClient
 		string response;
 		FTPResponse ftpResponse;
 
-		void help();
+		void help()
+		{
+
+		}
 
 		void get(string args)
 		{
@@ -130,9 +133,15 @@ class FTPClient
 			}
 		}
 
-		void put(string);
+		void put(string)
+		{
 
-		void _ls(vector<string>, vector<string>, bool print = true);
+		}
+
+		void _ls(vector<string>, vector<string>, bool print = true)
+		{
+
+		}
 
 		void ls(vector<string> flags, vector<string> args, int print = 1)
 		{
@@ -186,13 +195,33 @@ class FTPClient
 			}
 		}
 
-		string _pwd(bool print = true);	
-		string pwd(bool print = true);
-		int _cd(string, bool print = true);	
-		int cd(string, bool print = true);
+		string _pwd(bool print = true)
+		{
+			return "";
+		}
+		string pwd(bool print = true)
+		{
+			return "";
+		}
+		int _cd(string, bool print = true)
+		{
+			return 0;
+		}
 
-		int mkd(string, bool print= false);
-		int _mkd(string, bool print= false);
+		int cd(string, bool print = true)
+		{
+			return 0;
+		}
+
+		int mkd(string, bool print= false)
+		{
+			return 0;
+		}
+
+		int _mkd(string, bool print= false)
+		{
+			return 0;
+		}
 
 		int pasv()
 		{
