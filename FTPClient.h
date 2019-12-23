@@ -34,7 +34,7 @@ class FTPClient
 			// El archivo está disponible
 			if(out)
 			{
-				request =  FTPRequest("TYPE","I").getRequest();
+				request =  FTPRequest("TYPE","B").getRequest();
 				try
 				{
 					*controlSocket<<request;
@@ -490,7 +490,7 @@ class FTPClient
 
 						if(args.size()==2)
 						{
-							if(_cd(args[1],false)!= 1)
+							if(_cd(args[1],0)!= 1)
 							{
 								cout<<"El destino no existe"<<endl;
 								continue;
@@ -501,9 +501,9 @@ class FTPClient
 
 						if(filePath!="")
 						{
-							if(cd(filePath,false) != 250)
+							if(cd(filePath,0) != 250)
 							{
-								_cd(curr_loc,false);
+								_cd(curr_loc,0);
 								cout<<"El destino no existe"<<endl;
 								continue;
 							}
