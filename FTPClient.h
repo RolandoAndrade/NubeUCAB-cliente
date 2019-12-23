@@ -23,7 +23,113 @@ class FTPClient
 
 		void help();
 
-		void get(string);
+		void get(string args)
+		{
+			ofstream out(getFileName(args).c_str(), ios::out| ios::binary);
+			string data;
+			double length;
+			// El archivo está disponible
+			if(out)
+			{
+				request =  FTPRequest("TYPE","I").getRequest();
+				try
+				{
+					*controlSocket<<request;
+					*controlSocket>>response;
+					ftpResponse.setResponse(response);
+					cout<<ftpResponse.parseResponse(code);
+					if(code != 200)
+					{
+						return;
+					}
+				} 
+				catch(SocketException &e)
+				{
+					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					return;
+				}
+
+				if(pasv()!=227)
+				{
+					cout<<"No se pudo iniciar el modo PASV"<<endl;
+					return;
+				}
+				
+				request =  FTPRequest("RETR",getFileName(args)).getRequest();
+				
+				try
+				{
+					*controlSocket<<request;
+					*controlSocket>>response;
+					cout<<FTPResponse(response).parseResponse(code);
+					if(code != 150)
+					{
+						return;
+					}
+				} 
+				catch(SocketException &e)
+				{
+					std::cout<<"Un error ha ocurrido: "<<e.getMessage()<<endl;
+					return;
+				}
+
+				cout<<"Recibiendo el archivo: "<<getFileName(args)<<std::endl;
+				
+				// store data in buffer named data.
+				while (1)
+				{
+					data = "";
+					*dataSocket>>data;
+					length = length + data.size();
+					if(!data.size())
+					{
+						break;
+					}
+					out<<data;
+				}
+
+				// close connection.
+				(*dataSocket).close();
+				*controlSocket>>response;
+				out.close();
+				int code,precision;
+				FTPResponse ftpResponse(response);
+				cout<<ftpResponse.parseResponse(code);
+
+				// get file size by status code.
+				if(code == 226)
+				{
+					string size_msg = "bytes";
+					precision = 0;
+
+					if(length/1024 >= 1)
+					{
+						size_msg = "KB";
+						length /= 1024;
+						precision = 2;
+
+						if(length/1024 >= 1)
+						{
+							size_msg="MB";
+							length /= 1024;
+
+							if(length/1024 >= 1)
+							{
+								size_msg="GB";
+								length /= 1024;
+							}
+						}
+					}
+
+					cout<<setprecision(precision)<<fixed<<"Enviado archivo: "<<getFileName(args)<< " ( " << length <<size_msg<< " )"<<endl;
+				}
+			}
+			else
+			{
+				cout<<"Archivo: "<<getFileName(args)<<" no pudo transferirse"<<endl;
+			}
+		}
+
 		void put(string);
 
 		void _ls(vector<string>, vector<string>, bool print = true);
@@ -47,11 +153,12 @@ class FTPClient
 				FTPResponse ftpResponse(response);
 				ftpResponse.setResponse(response);
 				cout<<ftpResponse.parseResponse(code);
-				if(code != 227){
+				if(code != 227)
+				{
 					return code;
 				}
-					int port = ftpResponse.getPort();
-					dataSocket = new ClientSocket(host,port);
+				int port = ftpResponse.getPort();
+				dataSocket = new ClientSocket(host,port);
 			} 
 			catch(SocketException &e)
 			{
@@ -79,7 +186,7 @@ class FTPClient
 		}
 
 	public:
-		
+
 		FTPClient(string shost, int sport, string suser, string spass)
 		{
 			cout<<"\nNubeUCAB-cliente ha iniciado\n\n";
