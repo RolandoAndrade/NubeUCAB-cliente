@@ -22,6 +22,7 @@ class FTPClient
 		FTPResponse ftpResponse;
 
 		void help();
+
 		void get(string);
 		void put(string);
 
@@ -35,7 +36,30 @@ class FTPClient
 
 		int mkd(string, bool print= false);
 		int _mkd(string, bool print= false);
-		int pasv();
+
+		int pasv()
+		{
+			request = FTPRequest("PASV").getRequest();
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				FTPResponse ftpResponse(response);
+				ftpResponse.setResponse(response);
+				cout<<ftpResponse.parseResponse(code);
+				if(code != 227){
+					return code;
+				}
+					int port = ftpResponse.getPort();
+					dataSocket = new ClientSocket(host,port);
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return -1;
+			}
+			return code;
+		}
 		bool quit();
 
 	public:
