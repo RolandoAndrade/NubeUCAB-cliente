@@ -139,7 +139,7 @@ class FTPClient
 			{
 				long length = in.tellg();
 				in.seekg (0, in.beg);
-				request =  FTPRequest("TYPE","I").getRequest();
+				request =  FTPRequest("TYPE","B").getRequest();
 
 				try
 				{
