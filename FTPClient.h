@@ -316,9 +316,14 @@ class FTPClient
 			}
 		}
 
-		int _cd(string, bool print = true)
+		int _cd(string args, int print = 1)
 		{
-			return 0;
+			response = execute("cd",args,code);
+			if(print)
+			{
+				cout<<response;
+			}
+			return code;
 		}
 
 		int cd(string args, int print = 1)
