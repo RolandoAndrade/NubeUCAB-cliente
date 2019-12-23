@@ -3,6 +3,8 @@
 #include "FTPRequest.h"
 #include "FTPResponse.h"
 
+using namespace std;
+
 class FTPClient
 {
 	private:
@@ -12,12 +14,12 @@ class FTPClient
 		int ip;
 		int port;
 
-		int return_code;
-		ClientSocket *control_socket;
-		ClientSocket *data_socket;
+		int code;
+		ClientSocket *controlSocket;
+		ClientSocket *dataSocket;
 		string request;
 		string response;
-		FTPResponse ftp_response;
+		FTPResponse ftpResponse;
 
 		void help();
 		void get(string);
@@ -50,6 +52,40 @@ class FTPClient
 		{
 
 		}
-		void start();
+		void start()
+		{
+			cout<<"Conectando al host : "<< host<< " Puerto : "<<port<<endl;
+			
+			try
+			{
+				controlSocket = new ClientSocket(host,port);
+				*controlSocket>>response;
+				cout<<FTPResponse(response).parseResponse();
+
+				request = FTPRequest("USER",user).getRequest();
+				*controlSocket<< request;
+				*controlSocket>>response;
+
+				request = FTPRequest("PASS",pass).getRequest();
+				*controlSocket<<request;
+				*controlSocket>>response;
+
+				cout<<FTPResponse(response).parseResponse(code);
+				if(code != 230)
+				{
+					cout<<"Reintroduce el nombre de usuario: ";
+					cin>>user;
+					cout<<"Reintroduce la contraseña: ";
+					pass = getPassword();
+					start();
+				}
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return ;
+			}
+		}
+
 		void communicate();
 };
