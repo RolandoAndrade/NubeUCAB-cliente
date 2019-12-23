@@ -6,39 +6,50 @@
 class FTPClient
 {
 	private:
-		std::string host;
-		std::string user;
-		std::string passwd;	
+		string host;
+		string user;
+		string pass;	
 		int ip;
 		int port;
 
 		int return_code;
 		ClientSocket *control_socket;
 		ClientSocket *data_socket;
-		std::string request;
-		std::string response;
+		string request;
+		string response;
 		FTPResponse ftp_response;
 
 		void help();
-		void get(std::string);
-		void put(std::string);
+		void get(string);
+		void put(string);
 
-		void _ls(std::vector<std::string>, std::vector<std::string>, bool print = true);
-		void ls(std::vector<std::string>, std::vector<std::string>, bool print = true);
+		void _ls(vector<string>, vector<string>, bool print = true);
+		void ls(vector<string>, vector<string>, bool print = true);
 
-		std::string _pwd(bool print = true);	
-		std::string pwd(bool print = true);
-		int _cd(std::string, bool print = true);	
-		int cd(std::string, bool print = true);
+		string _pwd(bool print = true);	
+		string pwd(bool print = true);
+		int _cd(string, bool print = true);	
+		int cd(string, bool print = true);
 
-		int mkd(std::string, bool print= false);
-		int _mkd(std::string, bool print= false);
+		int mkd(string, bool print= false);
+		int _mkd(string, bool print= false);
 		int pasv();
 		bool quit();
 
 	public:
-		FTPClient(std::string, int, std::string, std::string);
-		~FTPClient();
+		FTPClient(string shost, int sport, string suser, string spass)
+		{
+			cout<<"\nNubeUCAB-cliente ha iniciado\n\n";
+			host = shost;
+			user = suser;
+			pass = spass;
+			port = sport;
+		}
+
+		~FTPClient()
+		{
+
+		}
 		void start();
 		void communicate();
 };
