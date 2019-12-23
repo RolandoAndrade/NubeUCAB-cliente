@@ -133,7 +133,58 @@ class FTPClient
 		void put(string);
 
 		void _ls(vector<string>, vector<string>, bool print = true);
-		void ls(vector<string>, vector<string>, bool print = true);
+
+		void ls(vector<string> flags, vector<string> args, int print = 1)
+		{
+			request = FTPRequest("LIST",flags,args).getRequest();
+			
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				ftpResponse.setResponse(response);
+				string p_response= ftpResponse.parseResponse(code);
+				
+				if(print)
+				{
+					cout<<p_response;
+				}
+
+				if(code != 150)
+				{
+					response = "";
+					return;
+				}
+
+				//Obtener respuesta
+				while(1)
+				{
+					response = "";
+					*dataSocket >> response;
+					if(!response.size())
+					{
+						break;
+					}
+					if(print)
+					{
+						cout<<response;
+					}																				
+				}
+
+				(*controlSocket)>>response;
+				ftpResponse.setResponse(response);
+				p_response= ftpResponse.parseResponse(code);		
+				if(print)
+				{
+					cout<<p_response;
+				}
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return ;
+			}
+		}
 
 		string _pwd(bool print = true);	
 		string pwd(bool print = true);
@@ -235,5 +286,167 @@ class FTPClient
 			}
 		}
 
-		void communicate();
+		void communicate()
+		{
+			string command,cmd;
+			vector<std::string> flags,args;
+
+			while(1)
+			{
+				flags.clear();
+				args.clear();
+				cout<<"NubeUCAB> ";
+				getline(cin,command);
+
+				if(parseCommand(command,cmd,flags,args))
+				{
+					
+					if(cmd=="get" && (args.size() == 1 || args.size()==2) && flags.size()==0)
+					{
+						string curr_loc = _pwd(0);
+						string curr_loc_server = pwd(0);
+
+						if(args.size()==2)
+						{
+							if(_cd(args[1],false)!= 1)
+							{
+								cout<<"El destino no existe"<<endl;
+								continue;
+							}
+						}
+
+						string filePath = getFilePath(args[0]);
+
+						if(filePath!="")
+						{
+							if(cd(filePath,false) != 250)
+							{
+								_cd(curr_loc,false);
+								std::cout<<"El destino no existe"<<endl;
+								continue;
+							}
+						}
+
+						get(getFileName(args[0]));
+						cd(curr_loc_server,0);
+						_cd(curr_loc,0);
+					} 
+					
+					else if(cmd=="put" && (args.size() == 1 || args.size()==2) && flags.size()==0)
+					{
+						string curr_loc = pwd(0);
+
+						if(args.size()==2)
+						{
+							if(cd(args[1],0)!= 250)
+							{
+								cout<<"El destino no existe"<<endl;
+								continue;
+							}
+						}
+
+						put(args[0]);
+						cd(curr_loc,0);
+					}
+					else if(cmd=="pwd" && !args.size()&& !flags.size())
+					{
+						pwd();
+					}
+					
+					else if(cmd=="cd" && !flags.size()&& args.size() == 1)
+					{
+						cd(args[0]);
+					}
+					else if(cmd=="ls")
+					{			
+						if(pasv()!=227)
+						{
+							cout<<"No se pueden listar los archivos"<<endl;
+							continue;
+						}
+						ls(flags,args);
+					}
+					else if(cmd=="mkdir" && args.size() == 1 && !flags.size())
+					{
+						int flag = 1;
+						string curr_loc = pwd(0);
+						vector<string> dirs = tokenize(args[0],"/");
+
+						for(int i=0;i<dirs.size();i++)
+						{
+							if(mkd(dirs[i],0)!=257 && cd(dirs[i],0) != 250)
+							{
+								cout<<"No se pudo crear el directorio"<<endl;
+								flag = 0;
+								break;
+							}				
+						}
+
+						cd(curr_loc,0);
+
+						if(flag)
+						{
+							cout<<"Directorio "<<args[0]<< " creado"<<endl;
+						}
+					}
+			
+					else if(cmd=="!pwd" && args.size() == 0 && flags.size()==0)
+					{
+						_pwd();
+					}
+					else if(cmd=="!cd" && flags.size() == 0 && args.size() == 1)
+					{
+						_cd(args[0]);
+					}
+					else if(cmd=="!ls")
+					{
+						_ls(flags,args);
+					}
+					else if(cmd=="!mkdir" && args.size() == 1 && !flags.size())
+					{
+						bool flag = 1;
+						string curr_loc = _pwd(0);
+
+						vector<string> dirs = tokenize(args[0],"/");
+						for(int i=0;i<dirs.size();i++)
+						{
+							int status = _mkd(dirs[i],0);
+							status = status | _cd(dirs[i],0);
+							if(_mkd(dirs[i],0)!=1 && _cd(dirs[i],0) != 1)
+							{
+								std::cout<<"No se ha podido crear directorio"<<std::endl;
+								flag = 0;
+								break;
+							}				
+						}
+
+						_cd(curr_loc,false);
+						if(flag)
+						{
+							cout<<"Directorio "<<args[0]<< " creado"<<std::endl;
+						}
+					}
+					else if(cmd=="quit")
+					{
+						if(quit())
+						{
+							(*controlSocket).close();
+							return;
+						}
+						else
+						{
+							cout<<"No se puede terminar la sesión"<<endl;
+						}
+					}
+					else if(cmd=="help")
+					{
+						help();
+					}
+					else
+					{
+						cout<<"No existe el comando"<<endl;
+					}
+				}
+			}
+		}
 };
