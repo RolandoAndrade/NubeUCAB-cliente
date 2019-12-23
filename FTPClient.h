@@ -48,7 +48,7 @@ class FTPClient
 				} 
 				catch(SocketException &e)
 				{
-					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
 					return;
 				}
 
@@ -72,11 +72,11 @@ class FTPClient
 				} 
 				catch(SocketException &e)
 				{
-					std::cout<<"Un error ha ocurrido: "<<e.getMessage()<<endl;
+					cout<<"Un error ha ocurrido: "<<e.getMessage()<<endl;
 					return;
 				}
 
-				cout<<"Recibiendo el archivo: "<<getFileName(args)<<std::endl;
+				cout<<"Recibiendo el archivo: "<<getFileName(args)<<endl;
 				
 				// store data in buffer named data.
 				while (1)
@@ -91,7 +91,6 @@ class FTPClient
 					out<<data;
 				}
 
-				// close connection.
 				(*dataSocket).close();
 				*controlSocket>>response;
 				out.close();
@@ -99,7 +98,6 @@ class FTPClient
 				FTPResponse ftpResponse(response);
 				cout<<ftpResponse.parseResponse(code);
 
-				// get file size by status code.
 				if(code == 226)
 				{
 					string size_msg = "bytes";
@@ -135,30 +133,31 @@ class FTPClient
 
 		void put(string args)
 		{
-			std::ifstream in(args.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+			ifstream in(args.c_str(), ios::in | ios::binary | ios::ate);
 			// Si existe el archivo
-			if(in){
+			if(in)
+			{
 				long length = in.tellg();
 				in.seekg (0, in.beg);
 				request =  FTPRequest("TYPE","I").getRequest();
-				// try to conncect to server.
+
 				try
 				{
 					*controlSocket<<request;
 					*controlSocket>>response;
 					ftpResponse.setResponse(response);
-					std::cout<<ftpResponse.parseResponse(code);
+					cout<<ftpResponse.parseResponse(code);
 					if(code != 200){
 						return;
 					}
 				} catch(SocketException &e){
-					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
 					return;
 				}
 
 				if(pasv()!=227)
 				{
-					std::cout<<"No se ha podido iniciar la transferencia del archivo"<<std::endl;
+					cout<<"No se ha podido iniciar la transferencia del archivo"<<endl;
 					return;
 				}
 				
@@ -168,7 +167,7 @@ class FTPClient
 					*controlSocket<<request;
 					*controlSocket>>response;
 					ftpResponse.setResponse(response);
-					std::cout<<ftpResponse.parseResponse(code);
+					cout<<ftpResponse.parseResponse(code);
 					if(code != 150)
 					{
 						return;
@@ -176,16 +175,14 @@ class FTPClient
 				} 
 				catch(SocketException &e)
 				{
-					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
 					return;
 				}
 
-				std::cout<<"Enviando el archivo "<<getFileName(args)<<std::endl;
+				cout<<"Enviando el archivo "<<getFileName(args)<<endl;
 				string data;
 
 				double c_length=length;
-				
-				// send all data to server.
 				while (length>0)
 				{
 					int read_sz = Socket::MAXRECV<length ? Socket::MAXRECV : length;
@@ -201,11 +198,11 @@ class FTPClient
 				in.close();
 				int code,precision;
 				FTPResponse ftp_response(response);
-				std::cout<<ftp_response.parseResponse(code);
+				cout<<ftp_response.parseResponse(code);
 				
 				if(code == 226)
 				{
-					std::string size_msg = "bytes";
+					string size_msg = "bytes";
 					precision = 0;
 
 					if(c_length/1024 >= 1)
@@ -226,12 +223,12 @@ class FTPClient
 							}
 						}
 					}
-					std::cout<<std::setprecision(precision)<<std::fixed<<"Se ha transferido el archivo "<<getFileName(args)<< " ( " << c_length <<size_msg<< " )"<<std::endl;
+					cout<<setprecision(precision)<<fixed<<"Se ha transferido el archivo "<<getFileName(args)<< " ( " << c_length <<size_msg<< " )"<<endl;
 				}
 			}
 			else
 			{
-				std::cout<<"El archivo "<<getFileName(args)<<" no existe"<<std::endl;
+				cout<<"El archivo "<<getFileName(args)<<" no existe"<<endl;
 			}
 		}
 
@@ -296,10 +293,29 @@ class FTPClient
 		{
 			return "";
 		}
-		string pwd(bool print = true)
+
+		string pwd(int print = 1)
 		{
-			return "";
+			request = FTPRequest("PWD","").getRequest();
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				ftpResponse.setResponse(response);		
+				string p_response = ftpResponse.parseResponse(code);
+				if(print)
+				{
+					cout<<p_response;
+				}
+				return p_response.substr(1,p_response.length()-4);
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return "" ;
+			}
 		}
+
 		int _cd(string, bool print = true)
 		{
 			return 0;
@@ -421,7 +437,7 @@ class FTPClient
 		void communicate()
 		{
 			string command,cmd;
-			vector<std::string> flags,args;
+			vector<string> flags,args;
 
 			while(1)
 			{
@@ -454,7 +470,7 @@ class FTPClient
 							if(cd(filePath,false) != 250)
 							{
 								_cd(curr_loc,false);
-								std::cout<<"El destino no existe"<<endl;
+								cout<<"El destino no existe"<<endl;
 								continue;
 							}
 						}
@@ -546,7 +562,7 @@ class FTPClient
 							status = status | _cd(dirs[i],0);
 							if(_mkd(dirs[i],0)!=1 && _cd(dirs[i],0) != 1)
 							{
-								std::cout<<"No se ha podido crear directorio"<<std::endl;
+								cout<<"No se ha podido crear directorio"<<endl;
 								flag = 0;
 								break;
 							}				
@@ -555,7 +571,7 @@ class FTPClient
 						_cd(curr_loc,false);
 						if(flag)
 						{
-							cout<<"Directorio "<<args[0]<< " creado"<<std::endl;
+							cout<<"Directorio "<<args[0]<< " creado"<<endl;
 						}
 					}
 					else if(cmd=="quit")
