@@ -19,6 +19,7 @@ class ClientSocket : private Socket
 			{
 				throw SocketException(strerror(errno));
 			}
+
 		}
 
 		ClientSocket(string host, int port)
@@ -29,7 +30,6 @@ class ClientSocket : private Socket
 			}
 
 			int ip = lookup(host);
-
 			if(!Socket::connect(ip,port))
 			{
 				throw SocketException(strerror(errno));

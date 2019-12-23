@@ -290,13 +290,19 @@ class FTPClient
 				*controlSocket>>response;
 				cout<<FTPResponse(response).parseResponse();
 
+				cout<<response<<endl;
+
 				request = FTPRequest("USER",user).getRequest();
 				*controlSocket<< request;
 				*controlSocket>>response;
 
+				cout<<request<<" "<<response<<endl;
+
 				request = FTPRequest("PASS",pass).getRequest();
 				*controlSocket<<request;
 				*controlSocket>>response;
+
+				cout<<request<<" "<<response<<endl;
 
 				cout<<FTPResponse(response).parseResponse(code);
 				if(code != 230)
