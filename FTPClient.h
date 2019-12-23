@@ -60,9 +60,26 @@ class FTPClient
 			}
 			return code;
 		}
-		bool quit();
+
+		int quit()
+		{
+			request = FTPRequest("QUIT").getRequest();
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				cout<<FTPResponse(response).parseResponse();
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return 0;
+			}
+			return 1;
+		}
 
 	public:
+		
 		FTPClient(string shost, int sport, string suser, string spass)
 		{
 			cout<<"\nNubeUCAB-cliente ha iniciado\n\n";
