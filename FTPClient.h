@@ -133,9 +133,106 @@ class FTPClient
 			}
 		}
 
-		void put(string)
+		void put(string args)
 		{
+			std::ifstream in(args.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+			// Si existe el archivo
+			if(in){
+				long length = in.tellg();
+				in.seekg (0, in.beg);
+				request =  FTPRequest("TYPE","I").getRequest();
+				// try to conncect to server.
+				try
+				{
+					*controlSocket<<request;
+					*controlSocket>>response;
+					ftpResponse.setResponse(response);
+					std::cout<<ftpResponse.parseResponse(code);
+					if(code != 200){
+						return;
+					}
+				} catch(SocketException &e){
+					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					return;
+				}
 
+				if(pasv()!=227)
+				{
+					std::cout<<"No se ha podido iniciar la transferencia del archivo"<<std::endl;
+					return;
+				}
+				
+				request =  FTPRequest("STOR",getFileName(args)).getRequest();
+				try
+				{
+					*controlSocket<<request;
+					*controlSocket>>response;
+					ftpResponse.setResponse(response);
+					std::cout<<ftpResponse.parseResponse(code);
+					if(code != 150)
+					{
+						return;
+					}
+				} 
+				catch(SocketException &e)
+				{
+					std::cout<<"Ha ocurrido un error: "<<e.getMessage()<<std::endl;
+					return;
+				}
+
+				std::cout<<"Enviando el archivo "<<getFileName(args)<<std::endl;
+				string data;
+
+				double c_length=length;
+				
+				// send all data to server.
+				while (length>0)
+				{
+					int read_sz = Socket::MAXRECV<length ? Socket::MAXRECV : length;
+					char buf[Socket::MAXRECV+1];
+					in.read(buf,read_sz);
+					data.assign(buf,read_sz);
+					*dataSocket<<data;
+					length -= read_sz;
+				}
+
+				(*dataSocket).close();
+				*controlSocket>>response;
+				in.close();
+				int code,precision;
+				FTPResponse ftp_response(response);
+				std::cout<<ftp_response.parseResponse(code);
+				
+				if(code == 226)
+				{
+					std::string size_msg = "bytes";
+					precision = 0;
+
+					if(c_length/1024 >= 1)
+					{
+						size_msg = "KB";
+						c_length /= 1024;
+						precision = 2;
+
+						if(c_length/1024 >= 1)
+						{
+							size_msg="MB";
+							c_length /= 1024;
+
+							if(c_length/1024 >= 1)
+							{
+								size_msg="GB";
+								c_length /= 1024;
+							}
+						}
+					}
+					std::cout<<std::setprecision(precision)<<std::fixed<<"Se ha transferido el archivo "<<getFileName(args)<< " ( " << c_length <<size_msg<< " )"<<std::endl;
+				}
+			}
+			else
+			{
+				std::cout<<"El archivo "<<getFileName(args)<<" no existe"<<std::endl;
+			}
 		}
 
 		void _ls(vector<string>, vector<string>, bool print = true)
