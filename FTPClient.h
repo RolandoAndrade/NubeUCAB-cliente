@@ -321,9 +321,26 @@ class FTPClient
 			return 0;
 		}
 
-		int cd(string, bool print = true)
+		int cd(string args, int print = 1)
 		{
-			return 0;
+			request = FTPRequest("CWD",args).getRequest();
+			// socket exceptions handling
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				ftpResponse.setResponse(response);
+				if(print)
+				{
+					cout<<ftpResponse.parseResponse(code);
+				}
+				return ftpResponse.returnCode();
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return -1;
+			}
 		}
 
 		int mkd(string, bool print= false)
