@@ -348,6 +348,50 @@ class FTPClient
 			}
 		}
 
+		int rename(string args, int print = 1)
+		{
+			request = FTPRequest("RENM",args).getRequest();
+			// socket exceptions handling
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				ftpResponse.setResponse(response);
+				if(print)
+				{
+					cout<<ftpResponse.parseResponse(code);
+				}
+				return ftpResponse.returnCode();
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return -1;
+			}
+		}
+
+		int rm(string args, int print = 1)
+		{
+			request = FTPRequest("REMV",args).getRequest();
+			// socket exceptions handling
+			try
+			{
+				*controlSocket<<request;
+				*controlSocket>>response;
+				ftpResponse.setResponse(response);
+				if(print)
+				{
+					cout<<ftpResponse.parseResponse(code);
+				}
+				return ftpResponse.returnCode();
+			} 
+			catch(SocketException &e)
+			{
+				cout<<"Ha ocurrido un error: "<<e.getMessage()<<endl;
+				return -1;
+			}
+		}
+
 		int mkd(string args, int print = 0)
 		{
 			request = FTPRequest("MKD",args).getRequest();
@@ -543,6 +587,14 @@ class FTPClient
 					else if(cmd=="cd" && !flags.size()&& args.size() == 1)
 					{
 						cd(args[0]);
+					}
+					else if(cmd=="rm" && !flags.size()&& args.size() == 1)
+					{
+						rm(args[0]);
+					}
+					else if(cmd=="rename" && !flags.size()&& args.size() == 2)
+					{
+						rename(args[0]+" "+args[1]);
 					}
 					else if(cmd=="ls")
 					{			
